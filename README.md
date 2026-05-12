@@ -20,6 +20,14 @@
 
 <div align="center">
 <table>
+<tr align="center" valign="top">
+<td>
 
+<img src="https://github.com/user-attachments/assets/083bdc6c-97d3-42de-b0b7-44631f052a01" width="100%" height="250"/>
+
+<p><a href="https://github.com/DreamMaoMao/mango-config"><b>DreamMaoMao</b></a></p>
+
+</td>
+</tr>
 </table>
 </div>
