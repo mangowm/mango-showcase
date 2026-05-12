@@ -1,0 +1,27 @@
+name: Update README
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - entries.yml
+      - generate.py
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate README
+        run: pip3 install pyyaml -q && python3 generate.py
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff --staged --quiet || git commit -m "chore: update showcase"
+          git push
