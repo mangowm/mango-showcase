@@ -6,28 +6,10 @@
 
 ---
 
-1. Fork this repo
-2. Get a screenshot URL by dragging your image into any GitHub PR or issue description box
-3. Add your entry to `entries.yml`:
+1. Add your entry to `entries.yml`:
    ```yaml
-   - your-username:
-       screenshot: https://github.com/user-attachments/assets/YOUR-IMAGE-ID
-       dotfiles: https://github.com/your-username/dotfiles
+   - your-username: https://github.com/your-username/dotfiles
    ```
-4. Open a pull request
+2. Open a pull request
 
----
-
-<div align="center">
-<table>
-<tr align="center" valign="top">
-<td>
-
-<img src="https://github.com/user-attachments/assets/083bdc6c-97d3-42de-b0b7-44631f052a01" width="100%" height="250"/>
-
-<p><a href="https://github.com/DreamMaoMao/mango-config"><b>DreamMaoMao</b></a></p>
-
-</td>
-</tr>
-</table>
-</div>
+> NOTE: For preview screenshot to work you must have `screenshot.png` in the root of your dotfiles repo.
