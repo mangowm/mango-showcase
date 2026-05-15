@@ -1,2 +1,7 @@
-- zydezu: https://github.com/zydezu/dotfiles
-- xtheeq: https://github.com/xtheeq/dotfiles
+- username: zydezu
+  dotfiles: https://github.com/zydezu/dotfiles
+  tags: ["CachyOS"]
+
+- username: xtheeq
+  dotfiles: https://github.com/xtheeq/dotfiles
+  tags: [""]
