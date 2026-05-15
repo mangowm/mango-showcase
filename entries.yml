@@ -1,7 +1,8 @@
 - username: zydezu
   dotfiles: https://github.com/zydezu/dotfiles
-  tags: ["CachyOS"]
-
+  tags: [CachyOS]
+  added: '2026-05-15T06:23:26Z'
 - username: xtheeq
   dotfiles: https://github.com/xtheeq/dotfiles
-  tags: [""]
+  tags: ['']
+  added: '2026-05-15T06:23:26Z'
