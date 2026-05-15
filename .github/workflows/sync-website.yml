@@ -22,7 +22,18 @@ jobs:
         id: stamp
         run: |
           python3 << 'EOF'
-          import yaml, datetime, sys, os
+          import yaml, datetime, os
+
+          class InlineList(list):
+              pass
+
+          class BlockDumper(yaml.Dumper):
+              pass
+
+          def represent_inline_list(dumper, data):
+              return dumper.represent_sequence("tag:yaml.org,2002:seq", data, flow_style=True)
+
+          BlockDumper.add_representer(InlineList, represent_inline_list)
 
           with open("entries.yml", "r") as f:
               content = f.read()
@@ -32,15 +43,15 @@ jobs:
           stamped = 0
 
           for entry in entries:
+              entry["tags"] = InlineList(entry.get("tags") or [])
               if "added" not in entry:
                   entry["added"] = now
                   stamped += 1
 
           if stamped > 0:
               with open("entries.yml", "w") as f:
-                  yaml.dump(entries, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+                  yaml.dump(entries, f, Dumper=BlockDumper, default_flow_style=False, allow_unicode=True, sort_keys=False)
               print(f"Stamped {stamped} new entry/entries with timestamp {now}")
-              # Signal to next step that we need to commit
               with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
                   fh.write("changed=true\n")
           else:
