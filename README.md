@@ -13,3 +13,5 @@
 2. Open a pull request
 
 > NOTE: For preview screenshot to work you must have `screenshot.png` in the root of your dotfiles repo.
+
+> The `added` timestamp is automatically stamped by the bot when your PR is merged. You do not need to add it manually.

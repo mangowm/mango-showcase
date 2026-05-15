@@ -1,0 +1,66 @@
+name: Sync website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - entries.yml
+
+permissions:
+  contents: write
+
+jobs:
+  stamp-and-dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Stamp missing timestamps in entries.yml
+        id: stamp
+        run: |
+          python3 << 'EOF'
+          import yaml, datetime, sys, os
+
+          with open("entries.yml", "r") as f:
+              content = f.read()
+
+          entries = yaml.safe_load(content) or []
+          now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+          stamped = 0
+
+          for entry in entries:
+              if "added" not in entry:
+                  entry["added"] = now
+                  stamped += 1
+
+          if stamped > 0:
+              with open("entries.yml", "w") as f:
+                  yaml.dump(entries, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+              print(f"Stamped {stamped} new entry/entries with timestamp {now}")
+              # Signal to next step that we need to commit
+              with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+                  fh.write("changed=true\n")
+          else:
+              print("No entries needed stamping.")
+              with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+                  fh.write("changed=false\n")
+          EOF
+
+      - name: Commit & push timestamps
+        if: steps.stamp.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add entries.yml
+          git commit -m "chore: stamp added timestamp for new showcase entries"
+          git push
+
+      - name: Dispatch website rebuild
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.SHOWCASE_SYNC_TOKEN }}
+          repository: mangowm/mangowm.github.io
+          event-type: showcase-updated
