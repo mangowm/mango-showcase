@@ -1,21 +1,21 @@
-<div align="center">
-  <img src="https://raw.githubusercontent.com/mangowm/mango/main/assets/mango-transparency-256.png" width="80"/>
-  <h2>Mango Showcase</h2>
-  <p>Community desktops powered by <a href="https://github.com/mangowm/mango">mangowm</a></p>
-</div>
+# <img src="https://raw.githubusercontent.com/mangowm/mango/main/assets/mango-transparency-256.png" width="28" height="28" alt="Mango logo" style="vertical-align: middle;"> MANGO SETUP SHOWCASE
 
----
+View the gallery: https://mangowm.github.io/showcase
 
-1. Add your entry to `entries.yml`:
-   ```yaml
-   - username: your-username
-     dotfiles: https://github.com/your-username/dotfiles
-     tags: [dark, minimal]
-   ```
-2. Open a pull request
+## Add your setup
 
-> NOTE: For preview screenshot to work you must have `screenshot.png` in the root of your dotfiles repo.
+1. Edit `entries.yml`:
 
-> `tags` is required but can be empty (`[]`). Use it to describe your setup.
+```yaml
+- username: your-username
+  dotfiles: https://github.com/your-username/dotfiles
+  tags: [dark, minimal]
+```
 
-> The `added` timestamp is automatically stamped by the bot when your PR is merged. Do not add it manually.
+2. Open a Pull Request.
+
+## Requirements
+
+* Your dotfiles repo must contain `screenshot.png` at the root for preview to work.
+* `tags` is required (can be `[]`).
+* Do **not** add `added`. It is added automatically after merge.
