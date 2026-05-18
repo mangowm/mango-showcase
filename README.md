@@ -12,10 +12,12 @@ View the gallery: https://mangowm.github.io/showcase
   tags: [dark, minimal]
 ```
 
-2. Open a Pull Request.
+2. Add screenshots to your dotfiles repo:
+   - **Single:** place `screenshot.png` in the root
+   - **Multiple:** place `1.png`, `2.png`, etc. inside `screenshots/` folder
+
+3. Open a pull request
 
 ## Requirements
-
-* Your dotfiles repo must contain `screenshot.png` at the root for preview to work.
 * `tags` is required (can be `[]`).
 * Do **not** add `added`. It is added automatically after merge.
