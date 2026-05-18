@@ -6,3 +6,7 @@
   dotfiles: https://github.com/xtheeq/dotfiles
   tags: ['']
   added: '2026-05-15T06:23:26Z'
+  
+- username: nyanstarrk
+  dotfiles: https://github.com/nyanstarrk/mango
+  tags: [VoidLinux, Noctalia-shell, Foot]
