@@ -21,3 +21,6 @@ View the gallery: https://mangowm.github.io/showcase
 ## Requirements
 * `tags` is required (can be `[]`).
 * Do **not** add `added`. It is added automatically after merge.
+
+## NOTE
+- Root screenshot file would be ignored in presence of screenshot folder containing valid numbered files
