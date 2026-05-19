@@ -7,6 +7,43 @@ jobs:
   create-pr:
     runs-on: ubuntu-latest
     steps:
+      - name: Debug token permissions
+        run: |
+          set -x
+          TOKEN="${{ secrets.SHOWCASE_PR_TOKEN }}"
+          echo "Token length: ${#TOKEN}"
+          echo "Token prefix: ${TOKEN:0:4}..."
+
+          # Test auth
+          echo "=== Auth test ==="
+          curl -s -o /dev/null -w "Auth: %{http_code}\n" \
+            -H "Authorization: Bearer $TOKEN" \
+            https://api.github.com/user
+
+          # Test repo access + contents
+          echo "=== Repo read ==="
+          curl -s -o /dev/null -w "Repo read: %{http_code}\n" \
+            -H "Authorization: Bearer $TOKEN" \
+            https://api.github.com/repos/mangowm/mango-showcase
+
+          # Test contents write (push simulation)
+          echo "=== Contents check ==="
+          curl -s -o /dev/null -w "Contents: %{http_code}\n" \
+            -H "Authorization: Bearer $TOKEN" \
+            https://api.github.com/repos/mangowm/mango-showcase/contents/entries.yml
+
+          # Test issues write
+          echo "=== Issues read ==="
+          curl -s -o /dev/null -w "Issues: %{http_code}\n" \
+            -H "Authorization: Bearer $TOKEN" \
+            https://api.github.com/repos/mangowm/mango-showcase/issues/${{ github.event.issue.number }}
+
+          # Test pull requests write
+          echo "=== PR create dry-run ==="
+          curl -s -o /dev/null -w "PR perms: %{http_code}\n" \
+            -H "Authorization: Bearer $TOKEN" \
+            https://api.github.com/repos/mangowm/mango-showcase/pulls?state=open
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
