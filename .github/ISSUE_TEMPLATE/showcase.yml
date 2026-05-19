@@ -1,0 +1,39 @@
+name: Showcase Submission
+description: Submit your desktop to the mango showcase
+title: "showcase: <your-username>"
+labels: ["submission"]
+body:
+  - type: input
+    id: username
+    attributes:
+      label: GitHub Username
+      placeholder: your-username
+    validations:
+      required: true
+
+  - type: input
+    id: dotfiles
+    attributes:
+      label: Dotfiles URL
+      placeholder: https://github.com/your-username/dotfiles
+    validations:
+      required: true
+
+  - type: input
+    id: tags
+    attributes:
+      label: Tags
+      description: Comma-separated. Can be left empty.
+      placeholder: dark, minimal, CachyOS
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: My dotfiles repo is public
+          required: true
+        - label: I have a `screenshot.png` in the root or numbered screenshots in a `screenshots/` folder
+          required: true
