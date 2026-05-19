@@ -151,6 +151,13 @@ jobs:
               state_reason: "not_planned",
             });
 
+      - name: Debug parse outputs
+        if: always()
+        run: |
+          echo "valid=${{ steps.parse.outputs.valid }}"
+          echo "username=${{ steps.parse.outputs.username }}"
+          echo "issue_author=${{ steps.parse.outputs.issue_author }}"
+
       # Success path: open PR attributed to the submitter
 
       - name: Resolve submitter email
@@ -173,7 +180,7 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.SHOWCASE_PR_TOKEN }}
-          branch: showcase/${{ steps.parse.outputs.username }}
+          branch: showcase/${{ steps.parse.outputs.username }}-${{ github.event.issue.number }}
           commit-message: "showcase: add ${{ steps.parse.outputs.username }}"
           # Attribute the commit to the submitter, not the PAT owner
           committer: >-
