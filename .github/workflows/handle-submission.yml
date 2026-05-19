@@ -1,0 +1,243 @@
+name: Handle Showcase Submission
+
+on:
+  issues:
+    types: [opened, reopened]
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  # Job 1: Process a new showcase issue submission
+  create-pr:
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+
+      - name: Parse issue and append entry
+        id: parse
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+        run: |
+          python3 << 'EOF'
+          import yaml, os, re
+          from urllib.parse import urlparse
+
+          body    = os.environ["ISSUE_BODY"]
+          author  = os.environ["ISSUE_AUTHOR"]
+          out     = os.environ["GITHUB_OUTPUT"]
+
+          def write_output(**kv):
+              with open(out, "a") as fh:
+                  for k, v in kv.items():
+                      fh.write(f"{k}={v}\n")
+
+          def extract(label):
+              match = re.search(rf"### {label}\s*\n+(.+)", body)
+              return match.group(1).strip() if match else ""
+
+          username = author
+          dotfiles = extract("Dotfiles URL")
+          tags_raw = extract("Tags")
+          tags     = [t.strip() for t in tags_raw.split(",") if t.strip()]
+
+          # Validate required fields
+          if not username or not dotfiles:
+              write_output(valid="false", reason="missing_fields")
+              raise SystemExit(0)
+
+          # Validate dotfiles is a plausible URL
+          parsed = urlparse(dotfiles)
+          if parsed.scheme not in ("http", "https") or not parsed.netloc:
+              write_output(valid="false", reason="invalid_url")
+              raise SystemExit(0)
+
+          # Load existing entries
+          with open("entries.yml", "r") as f:
+              entries = yaml.safe_load(f.read()) or []
+
+          # Duplicate checks
+          if any(e.get("username", "").lower() == username.lower() for e in entries):
+              write_output(valid="false", reason="duplicate_username")
+              raise SystemExit(0)
+
+          if any(e.get("dotfiles") == dotfiles for e in entries):
+              write_output(valid="false", reason="duplicate_url")
+              raise SystemExit(0)
+
+          # YAML dumper
+          class InlineList(list): pass
+          class BlockDumper(yaml.Dumper): pass
+          def represent_inline_list(dumper, data):
+              return dumper.represent_sequence("tag:yaml.org,2002:seq", data, flow_style=True)
+          BlockDumper.add_representer(InlineList, represent_inline_list)
+
+          for entry in entries:
+              entry["tags"] = InlineList(entry.get("tags") or [])
+
+          entries.append({
+              "username": username,
+              "dotfiles": dotfiles,
+              "tags":     InlineList(tags),
+          })
+
+          with open("entries.yml", "w") as f:
+              yaml.dump(
+                  entries, f,
+                  Dumper=BlockDumper,
+                  default_flow_style=False,
+                  allow_unicode=True,
+                  sort_keys=False,
+              )
+
+          write_output(valid="true", username=username, issue_author=author)
+          EOF
+
+      # Failure path: comment explaining why, then close
+
+      - name: Comment — invalid URL
+        if: steps.parse.outputs.valid == 'false' && steps.parse.outputs.reason == 'invalid_url'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Thanks for submitting! The **Dotfiles URL** you provided doesn't look like a valid URL (it must start with `https://`).
+
+            Please open a new issue with a corrected link.
+
+      - name: Comment — duplicate username
+        if: steps.parse.outputs.valid == 'false' && steps.parse.outputs.reason == 'duplicate_username'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Thanks for submitting! It looks like **@${{ github.event.issue.user.login }}** is already in the showcase.
+
+            If you'd like to update your existing entry, please open a separate issue describing the change.
+
+      - name: Comment — duplicate dotfiles URL
+        if: steps.parse.outputs.valid == 'false' && steps.parse.outputs.reason == 'duplicate_url'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Thanks for submitting! That dotfiles URL is already listed in the showcase under a different username.
+
+            Please open a new issue if you believe this is an error.
+
+      - name: Close invalid issue
+        if: steps.parse.outputs.valid == 'false'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          script: |
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: "closed",
+              state_reason: "not_planned",
+            });
+
+      # Success path: open PR attributed to the submitter
+
+      - name: Resolve submitter email
+        if: steps.parse.outputs.valid == 'true'
+        id: author-info
+        env:
+          GH_TOKEN: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          SUBMITTER: ${{ steps.parse.outputs.issue_author }}
+        run: |
+          # GitHub exposes a stable noreply address for every user:
+          #   <id>+<login>@users.noreply.github.com
+          # We fetch the numeric ID so the address is exact.
+          USER_ID=$(gh api /users/${SUBMITTER} --jq '.id')
+          echo "name=${SUBMITTER}" >> "$GITHUB_OUTPUT"
+          echo "email=${USER_ID}+${SUBMITTER}@users.noreply.github.com" >> "$GITHUB_OUTPUT"
+
+      - name: Create Pull Request
+        if: steps.parse.outputs.valid == 'true'
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          branch: showcase/${{ steps.parse.outputs.username }}
+          commit-message: "showcase: add ${{ steps.parse.outputs.username }}"
+          # Attribute the commit to the submitter, not the PAT owner
+          committer: >-
+            ${{ steps.author-info.outputs.name }}
+            <${{ steps.author-info.outputs.email }}>
+          author: >-
+            ${{ steps.author-info.outputs.name }}
+            <${{ steps.author-info.outputs.email }}>
+          title: "showcase: add ${{ steps.parse.outputs.username }}"
+          body: |
+            Submitted by @${{ steps.parse.outputs.username }} via issue #${{ github.event.issue.number }}.
+
+            Closes #${{ github.event.issue.number }}
+          labels: submission
+
+      - name: Comment with PR link
+        if: steps.parse.outputs.valid == 'true'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Thanks @${{ steps.parse.outputs.username }}! A pull request has been opened for your submission: ${{ steps.cpr.outputs.pull-request-url }}
+
+            It will be reviewed shortly — no further action needed on your end.
+
+  # Job 2: Close the linked issue when PR is merged
+  # (fallback — "Closes #N" in the PR body handles
+  #  this automatically on GitHub, but this job
+  #  makes it explicit and works for edge cases)
+  close-issue-on-merge:
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'submission')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract linked issue number
+        id: linked
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          # Parse "Closes #N" from the PR body written by the create-pr job
+          ISSUE_NUM=$(echo "$PR_BODY" | grep -oP '(?<=Closes #)\d+' | head -1)
+          echo "issue_number=${ISSUE_NUM}" >> "$GITHUB_OUTPUT"
+
+      - name: Close linked issue
+        if: steps.linked.outputs.issue_number != ''
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          script: |
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.linked.outputs.issue_number }},
+              state: "closed",
+              state_reason: "completed",
+            });
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.linked.outputs.issue_number }},
+              body: "Your submission has been merged and is now live in the showcase!",
+            });
