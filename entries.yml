@@ -2,10 +2,6 @@
   dotfiles: https://github.com/zydezu/dotfiles
   tags: [CachyOS]
   added: '2026-05-15T06:23:26Z'
-- username: xtheeq
-  dotfiles: https://github.com/xtheeq/dotfiles
-  tags: ['']
-  added: '2026-05-15T06:23:26Z'
 - username: nyanstarrk
   dotfiles: https://github.com/nyanstarrk/mango
   tags: [VoidLinux, Noctalia-shell, Foot]
