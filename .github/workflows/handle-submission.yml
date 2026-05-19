@@ -41,16 +41,11 @@ jobs:
                   for k, v in kv.items():
                       fh.write(f"{k}={v}\n")
 
-          # Ignore issues that aren't showcase submissions
-          if "### GitHub Username" not in body:
-              write_output(valid="skip")
-              raise SystemExit(0)
-
           def extract(label):
               match = re.search(rf"### {label}\s*\n+(.+)", body)
               return match.group(1).strip() if match else ""
 
-          username = extract("GitHub Username").lstrip("@")
+          username = author
           dotfiles = extract("Dotfiles URL")
           tags_raw = extract("Tags")
           tags     = [t.strip() for t in tags_raw.split(",") if t.strip()]
