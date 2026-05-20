@@ -10,3 +10,6 @@
   dotfiles: https://github.com/DizzyJune/dotfiles
   tags: [Gentoo, minimal]
   added: '2026-05-19T17:56:49Z'
+- username: DreamMaoMao
+  dotfiles: https://github.com/DreamMaoMao/mango-config
+  tags: [gruvbox]
