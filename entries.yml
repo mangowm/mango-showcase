@@ -14,3 +14,6 @@
   dotfiles: https://github.com/DreamMaoMao/mango-config
   tags: [gruvbox]
   added: '2026-05-20T02:58:06Z'
+- username: turtletiny
+  dotfiles: https://github.com/turtletiny/dotfiles
+  tags: [CachyOS, Noctalia-shell, catppuccin]
