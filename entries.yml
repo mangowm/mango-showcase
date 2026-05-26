@@ -26,3 +26,6 @@
   dotfiles: https://github.com/melatonia/meloworld-dotfiles
   tags: [quickshell, ghibli, cozy, minimal, Arch, neo-brutalist]
   added: '2026-05-26T07:30:35Z'
+- username: herodnm2
+  dotfiles: https://github.com/herodnm2/nixos-dotfiles/
+  tags: [waybar, awww, swaync, neon]
