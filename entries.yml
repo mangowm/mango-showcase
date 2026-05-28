@@ -30,3 +30,6 @@
   dotfiles: https://github.com/herodnm2/nixos-dotfiles/
   tags: [waybar, awww, swaync, neon]
   added: '2026-05-26T21:43:19Z'
+- username: sumonexyz
+  dotfiles: https://github.com/sumonexyz/mangodots
+  tags: [dark, Noctalia-shell, Foot]
