@@ -38,3 +38,6 @@
   dotfiles: https://github.com/diggingforce/dotfiles
   tags: [Noctalia-shell, CachyOS, Monochrome, Dark]
   added: '2026-05-30T09:53:22Z'
+- username: Senderman
+  dotfiles: https://github.com/Senderman/dotfiles
+  tags: [Artix, Foot, awww, dark, waybar, fuzzel, fnott]
