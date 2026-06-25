@@ -46,3 +46,6 @@
   dotfiles: https://github.com/xtheeq/dotfiles
   tags: []
   added: '2026-06-10T16:51:56Z'
+- username: kagurazakei
+  dotfiles: https://github.com/kagurazakei/Apostle
+  tags: [Nixos, Noctalia(v5)]
