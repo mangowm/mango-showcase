@@ -42,10 +42,6 @@
   dotfiles: https://github.com/Senderman/dotfiles
   tags: [Artix, Foot, awww, dark, waybar, fuzzel, fnott]
   added: '2026-05-30T13:31:58Z'
-- username: xtheeq
-  dotfiles: https://github.com/xtheeq/dotfiles
-  tags: []
-  added: '2026-06-10T16:51:56Z'
 - username: kagurazakei
   dotfiles: https://github.com/kagurazakei/Apostle
   tags: [Nixos, Noctalia(v5)]
