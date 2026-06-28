@@ -99,7 +99,7 @@ jobs:
                   sort_keys=False,
               )
 
-          write_output(valid="true", username=username, issue_author=author)
+          write_output(valid="true", username=username, dotfiles=dotfiles, issue_author=author)
           EOF
 
       # Failure path: comment explaining why, then close
@@ -151,10 +151,60 @@ jobs:
               state_reason: "not_planned",
             });
 
-      # Success path: open PR attributed to the submitter
+      # Success path: validate screenshots exist, then open PR
+
+      - name: Check for screenshots
+        if: steps.parse.outputs.valid == 'true'
+        id: screenshots
+        env:
+          DOTFILES: ${{ steps.parse.outputs.dotfiles }}
+        run: |
+          REPO_PATH=$(echo "$DOTFILES" | sed 's|https://github.com/||; s|\.git$||')
+          RAW_BASE="https://raw.githubusercontent.com/${REPO_PATH}"
+          for url in \
+            "${RAW_BASE}/showcase/images/1.png" \
+            "${RAW_BASE}/showcase/image.png" \
+            "${RAW_BASE}/screenshots/1.png" \
+            "${RAW_BASE}/screenshot.png"; do
+            if curl -sI -o /dev/null -w "%{http_code}" "$url" | grep -q "^2"; then
+              echo "found=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          echo "found=false" >> "$GITHUB_OUTPUT"
+
+      - name: Comment — no screenshots found
+        if: steps.screenshots.outputs.found == 'false'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Thanks for submitting! We couldn't find any screenshots in your dotfiles repo at the expected paths.
+
+            Please add at least one screenshot under a `showcase/` directory:
+
+            - **Single:** `showcase/image.png`
+            - **Multiple:** `showcase/images/1.png`, `2.png`, ...
+
+            Once you've pushed the files, open a new issue and we'll pick them up.
+
+      - name: Close issue — no screenshots
+        if: steps.screenshots.outputs.found == 'false'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          script: |
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: "closed",
+              state_reason: "not_planned",
+            });
 
       - name: Resolve submitter email
-        if: steps.parse.outputs.valid == 'true'
+        if: steps.parse.outputs.valid == 'true' && steps.screenshots.outputs.found == 'true'
         id: author-info
         env:
           GH_TOKEN: ${{ secrets.SHOWCASE_PR_TOKEN }}
@@ -168,7 +218,7 @@ jobs:
           echo "email=${USER_ID}+${SUBMITTER}@users.noreply.github.com" >> "$GITHUB_OUTPUT"
 
       - name: Create Pull Request
-        if: steps.parse.outputs.valid == 'true'
+        if: steps.parse.outputs.valid == 'true' && steps.screenshots.outputs.found == 'true'
         id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
@@ -190,7 +240,7 @@ jobs:
           labels: submission
 
       - name: Comment with PR link
-        if: steps.parse.outputs.valid == 'true'
+        if: steps.parse.outputs.valid == 'true' && steps.screenshots.outputs.found == 'true'
         uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ secrets.SHOWCASE_PR_TOKEN }}
@@ -198,7 +248,7 @@ jobs:
           body: |
             Thanks @${{ steps.parse.outputs.username }}! A pull request has been opened for your submission: ${{ steps.cpr.outputs.pull-request-url }}
 
-            It will be reviewed shortly — no further action needed on your end.
+            Screenshots were found in your dotfiles repo, so once merged your entry will appear in the gallery. A maintainer will review shortly — no further action needed.
 
   # Job 2: Close the linked issue when PR is merged
   # (fallback — "Closes #N" in the PR body handles
