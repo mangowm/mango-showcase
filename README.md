@@ -12,15 +12,15 @@ View the gallery: https://mangowm.github.io/showcase
   tags: [dark, minimal]
 ```
 
-2. Add screenshots to your dotfiles repo:
-   - **Single:** place `screenshot.png` in the root
-   - **Multiple:** place `1.png`, `2.png`, etc. inside `screenshots/` folder
+2. Add assets to your dotfiles repo under a `showcase/` directory:
+
+   | Type | Single file | Multiple files |
+   |------|-------------|----------------|
+   | **Screenshots** | `showcase/image.png` | `showcase/images/1.png`, `2.png`, ... |
+   | **Videos** | `showcase/video.mp4` | `showcase/videos/1.mp4`, `2.mp4`, ... |
 
 3. Open a pull request
 
 ## Requirements
 * `tags` is required (can be `[]`).
 * Do **not** add `added`. It is added automatically after merge.
-
-## NOTE
-- Root screenshot file would be ignored in presence of screenshot folder containing valid numbered files
