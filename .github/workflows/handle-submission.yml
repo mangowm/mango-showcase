@@ -48,7 +48,7 @@ jobs:
           username = author
           dotfiles = extract("Dotfiles URL")
           tags_raw = extract("Tags")
-          tags     = [t.strip() for t in tags_raw.split(",") if t.strip()]
+          tags     = [t.strip().lower() for t in tags_raw.split(",") if t.strip()]
 
           # Validate required fields
           if not username or not dotfiles:
