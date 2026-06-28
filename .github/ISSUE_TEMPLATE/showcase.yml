@@ -3,6 +3,18 @@ description: Submit your desktop to the mango showcase
 title: "showcase: <your-username>"
 labels: ["submission"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Before submitting, ensure your dotfiles repo has screenshots under a `showcase/` directory:
+
+        | Type | Single file | Multiple files |
+        |------|-------------|----------------|
+        | **Screenshots** | `showcase/image.png` | `showcase/images/1.png`, `2.png`, ... |
+        | **Videos** | `showcase/video.mp4` | `showcase/videos/1.mp4`, `2.mp4`, ... |
+
+        Entries without any screenshots will be skipped.
+
   - type: input
     id: dotfiles
     attributes:
