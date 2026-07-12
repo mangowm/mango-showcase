@@ -46,3 +46,6 @@
   dotfiles: https://github.com/kagurazakei/Apostle
   tags: [Nixos, Noctalia(v5)]
   added: '2026-06-25T13:30:42Z'
+- username: void90user
+  dotfiles: https://github.com/void90user/Mango-Style
+  tags: [dark, minimal, mango, Arch, waybar, pastel]
