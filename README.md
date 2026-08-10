@@ -4,7 +4,7 @@ View the gallery: https://mangowm.github.io/showcase
 
 ## Add your setup
 
-1. Edit `entries.yml`:
+1. Edit `entries.yml` (your dotfiles repo must be public and hosted on **github** or **codeberg**):
 
 ```yaml
 - username: your-username

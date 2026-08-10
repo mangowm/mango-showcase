@@ -19,7 +19,7 @@ body:
     id: dotfiles
     attributes:
       label: Dotfiles URL
-      description: Must be a public repository.
+      description: Must be a public repository on github or codeberg.
       placeholder: https://github.com/your-username/dotfiles
     validations:
       required: true
