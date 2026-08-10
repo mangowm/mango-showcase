@@ -160,13 +160,22 @@ jobs:
           DOTFILES: ${{ steps.parse.outputs.dotfiles }}
           GH_TOKEN: ${{ secrets.SHOWCASE_PR_TOKEN }}
         run: |
-          if [[ "$DOTFILES" != https://github.com/* ]]; then
-            echo "found=unsupported_host" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          REPO_PATH=$(echo "$DOTFILES" | sed 's|https://github.com/||; s|\.git$||')
-          DEFAULT_BRANCH=$(gh api "/repos/${REPO_PATH}" --jq '.default_branch')
-          RAW_BASE="https://raw.githubusercontent.com/${REPO_PATH}/${DEFAULT_BRANCH}"
+          case "$DOTFILES" in
+            https://github.com/*)
+              REPO_PATH=$(echo "$DOTFILES" | sed 's|https://github.com/||; s|\.git$||')
+              DEFAULT_BRANCH=$(gh api "/repos/${REPO_PATH}" --jq '.default_branch')
+              RAW_BASE="https://raw.githubusercontent.com/${REPO_PATH}/${DEFAULT_BRANCH}"
+              ;;
+            https://codeberg.org/*)
+              REPO_PATH=$(echo "$DOTFILES" | sed 's|https://codeberg.org/||; s|\.git$||')
+              DEFAULT_BRANCH=$(curl -s "https://codeberg.org/api/v1/repos/${REPO_PATH}" | jq -r '.default_branch')
+              RAW_BASE="https://codeberg.org/${REPO_PATH}/raw/branch/${DEFAULT_BRANCH}"
+              ;;
+            *)
+              echo "found=unsupported_host" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+          esac
           for url in \
             "${RAW_BASE}/showcase/images/1.png" \
             "${RAW_BASE}/showcase/image.png" \
