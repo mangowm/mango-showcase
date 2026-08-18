@@ -54,3 +54,6 @@
   dotfiles: https://github.com/LilacShades/pseudo-paradise
   tags: [dark, minimal, waybar]
   added: '2026-08-10T15:27:27Z'
+- username: Matko802
+  dotfiles: https://github.com/Matko802/fish-flake
+  tags: [minimal, amoled, nixos]
