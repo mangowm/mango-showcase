@@ -58,3 +58,6 @@
   dotfiles: https://github.com/Matko802/fish-flake
   tags: [minimal, amoled, nixos]
   added: '2026-08-18T13:45:39Z'
+- username: w1zardsec
+  dotfiles: https://github.com/w1zardsec/dotfiles
+  tags: [dark, minimal]
