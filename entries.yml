@@ -74,3 +74,6 @@
   dotfiles: https://github.com/Venomous27/superior-mango-dotfiles
   tags: [cachyos, pywal, minimal]
   added: '2026-09-28T10:01:30Z'
+- username: archlinux-fan
+  dotfiles: https://github.com/archlinux-fan/arch-dots
+  tags: [nord, minimal, arch]
