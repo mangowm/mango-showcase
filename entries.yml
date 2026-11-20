@@ -78,3 +78,6 @@
   dotfiles: https://github.com/archlinux-fan/arch-dots
   tags: [nord, minimal, arch]
   added: '2026-11-09T04:51:25Z'
+- username: variety4me
+  dotfiles: https://github.com/variety4me/mangowm
+  tags: [dark, minimal, toml, waybar, kitty]
