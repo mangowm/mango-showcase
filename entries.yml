@@ -82,3 +82,6 @@
   dotfiles: https://github.com/variety4me/mangowm
   tags: [dark, minimal, toml, waybar, kitty]
   added: '2026-11-20T07:01:22Z'
+- username: code-smith404
+  dotfiles: https://github.com/code-smith404/Mangowm-Dotfiles
+  tags: [dark, purple]
