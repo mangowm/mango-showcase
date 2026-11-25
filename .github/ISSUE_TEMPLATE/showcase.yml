@@ -1,26 +1,26 @@
 name: Showcase Submission
-description: Submit your desktop to the mango showcase
-title: "showcase: <your-username>"
+description: Submit your setup to the mango showcase
+title: "showcase: <username>"
 labels: ["submission"]
 body:
   - type: markdown
     attributes:
       value: |
-        Before submitting, ensure your dotfiles repo has screenshots under a `showcase/` directory:
+        Your dotfiles repo needs at least one **screenshot or video** in a `showcase/` directory:
 
         | Type | Single file | Multiple files |
         |------|-------------|----------------|
         | **Screenshots** | `showcase/image.png` | `showcase/images/1.png`, `2.png`, ... |
         | **Videos** | `showcase/video.mp4` | `showcase/videos/1.mp4`, `2.mp4`, ... |
 
-        Entries without any screenshots will be skipped.
+        > Submissions without media are closed automatically.
 
   - type: input
     id: dotfiles
     attributes:
       label: Dotfiles URL
-      description: Must be a public repository on github or codeberg.
-      placeholder: https://github.com/your-username/dotfiles
+      description: A public repository on GitHub.
+      placeholder: https://github.com/<username>/<repo>
     validations:
       required: true
 
@@ -28,9 +28,7 @@ body:
     id: tags
     attributes:
       label: Tags
-      description: >
-        Optional. Comma-separated keywords that describe your setup —
-        e.g. `dark`, `minimal`.
+      description: "Optional. Comma-separated keywords that describe your setup, for example `dark, minimal`."
       placeholder: dark, minimal
     validations:
       required: false
