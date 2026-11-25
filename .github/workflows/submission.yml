@@ -3,6 +3,8 @@ name: Showcase submission
 on:
   issues:
     types: [opened, reopened]
+  pull_request:
+    types: [closed]
 
 permissions:
   contents: write
@@ -11,7 +13,7 @@ permissions:
 
 jobs:
   create-pr:
-    if: contains(github.event.issue.labels.*.name, 'submission')
+    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'submission')
     runs-on: ubuntu-latest
 
     steps:
@@ -184,3 +186,45 @@ jobs:
             > ${{ steps.cpr.outputs.pull-request-url }}
 
             A maintainer will review it. Once merged, your entry appears in the gallery. No further action needed.
+
+  notify-on-merge:
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'submission')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+
+    steps:
+      - uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          script: |
+            const { repository } = await github.graphql(
+              `query ($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $number) {
+                    closingIssuesReferences(first: 10) {
+                      nodes { number }
+                    }
+                  }
+                }
+              }`,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                number: context.payload.pull_request.number,
+              },
+            );
+
+            for (const issue of repository.pullRequest.closingIssuesReferences.nodes) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: "Your submission is merged and will be live shortly.",
+              });
+            }
