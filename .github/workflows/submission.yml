@@ -1,0 +1,186 @@
+name: Showcase submission
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  create-pr:
+    if: contains(github.event.issue.labels.*.name, 'submission')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.15"
+
+      - name: Install dependencies
+        run: python -m pip install -r .github/scripts/requirements.txt
+
+      - name: Parse issue and append entry
+        id: parse
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+        run: python .github/scripts/showcase.py add
+
+      - name: Comment on invalid URL
+        if: steps.parse.outputs.valid == 'false' && steps.parse.outputs.reason == 'invalid_url'
+        uses: peter-evans/create-or-update-comment@v5
+        with:
+          token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            The **Dotfiles URL** must look like:
+
+            > `https://github.com/<username>/<repo>`
+
+            Open a new issue with the correct URL.
+
+      - name: Comment on duplicate username
+        if: steps.parse.outputs.valid == 'false' && steps.parse.outputs.reason == 'duplicate_username'
+        uses: peter-evans/create-or-update-comment@v5
+        with:
+          token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            @${{ github.event.issue.user.login }} is **already in the showcase**.
+
+            To update an existing entry, open a separate pull request.
+
+      - name: Comment on duplicate dotfiles URL
+        if: steps.parse.outputs.valid == 'false' && steps.parse.outputs.reason == 'duplicate_url'
+        uses: peter-evans/create-or-update-comment@v5
+        with:
+          token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            This **dotfiles URL** is already listed under a different username.
+
+            Open a new issue if that is a mistake.
+
+      - name: Close invalid issue
+        if: steps.parse.outputs.valid == 'false'
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          script: |
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: "closed",
+              state_reason: "not_planned",
+            });
+
+      - name: Check for media
+        if: steps.parse.outputs.valid == 'true'
+        id: media
+        env:
+          REPO: ${{ steps.parse.outputs.repo }}
+          GH_TOKEN: ${{ secrets.SHOWCASE_PR_TOKEN }}
+        run: |
+          if ! paths=$(gh api "/repos/${REPO}/git/trees/HEAD?recursive=1" --jq '.tree[] | select(.type == "blob") | .path' 2>/dev/null); then
+            echo "found=error" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if grep -Eq '^showcase/((images/[0-9]+|image)\.(png|jpe?g|webp|avif)|(videos/[0-9]+|video)\.(mp4|webm))$' <<< "$paths"; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment on unreadable repo
+        if: steps.media.outputs.found == 'error'
+        uses: peter-evans/create-or-update-comment@v5
+        with:
+          token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Could not access your dotfiles repo.
+
+            Make sure it is **public** and the URL is correct, then open a new issue.
+
+      - name: Comment on missing media
+        if: steps.media.outputs.found == 'false'
+        uses: peter-evans/create-or-update-comment@v5
+        with:
+          token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            No media was found in your dotfiles repo.
+
+            Add a screenshot or video to **`showcase/`**:
+
+            - **Screenshot:** `showcase/image.png` or `showcase/images/1.png`
+            - **Video:** `showcase/video.mp4` or `showcase/videos/1.mp4`
+
+            Push the files, then open a new issue.
+
+      - name: Close issue
+        if: steps.media.outputs.found == 'false' || steps.media.outputs.found == 'error'
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          script: |
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: "closed",
+              state_reason: "not_planned",
+            });
+
+      - name: Resolve submitter email
+        if: steps.parse.outputs.valid == 'true' && steps.media.outputs.found == 'true'
+        id: author-info
+        env:
+          GH_TOKEN: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          SUBMITTER: ${{ steps.parse.outputs.username }}
+        run: |
+          USER_ID=$(gh api /users/${SUBMITTER} --jq '.id')
+          echo "name=${SUBMITTER}" >> "$GITHUB_OUTPUT"
+          echo "email=${USER_ID}+${SUBMITTER}@users.noreply.github.com" >> "$GITHUB_OUTPUT"
+
+      - name: Create Pull Request
+        if: steps.parse.outputs.valid == 'true' && steps.media.outputs.found == 'true'
+        id: cpr
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          branch: showcase/${{ steps.parse.outputs.username }}
+          commit-message: "showcase: add ${{ steps.parse.outputs.username }}"
+          committer: >-
+            ${{ steps.author-info.outputs.name }}
+            <${{ steps.author-info.outputs.email }}>
+          author: >-
+            ${{ steps.author-info.outputs.name }}
+            <${{ steps.author-info.outputs.email }}>
+          title: "showcase: add ${{ steps.parse.outputs.username }}"
+          body: |
+            Submitted by @${{ steps.parse.outputs.username }} via issue #${{ github.event.issue.number }}.
+
+            Closes #${{ github.event.issue.number }}
+          labels: submission
+
+      - name: Comment with PR link
+        if: steps.parse.outputs.valid == 'true' && steps.media.outputs.found == 'true'
+        uses: peter-evans/create-or-update-comment@v5
+        with:
+          token: ${{ secrets.SHOWCASE_PR_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Thanks @${{ steps.parse.outputs.username }}. A **pull request** is open for your submission:
+
+            > ${{ steps.cpr.outputs.pull-request-url }}
+
+            A maintainer will review it. Once merged, your entry appears in the gallery. No further action needed.
