@@ -86,3 +86,6 @@
   dotfiles: https://github.com/code-smith404/Mangowm-Dotfiles
   tags: [dark, purple]
   added: '2026-11-24T11:23:32Z'
+- username: hruboson
+  dotfiles: https://github.com/hruboson/nixos-conf
+  tags: [vague, minimal, nixos, waybar, awww]
