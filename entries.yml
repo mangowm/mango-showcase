@@ -89,3 +89,4 @@
 - username: hruboson
   dotfiles: https://github.com/hruboson/nixos-conf
   tags: [vague, minimal, nixos, waybar, awww]
+  added: '2026-11-25T10:45:40Z'
