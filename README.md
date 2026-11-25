@@ -1,4 +1,4 @@
-# <img src="https://raw.githubusercontent.com/mangowm/mango/main/assets/mango-transparency-256.png" width="28" height="28" alt="mango logo" style="vertical-align: middle;"> mango setup showcase
+# <img src="https://raw.githubusercontent.com/mangowm/mango/main/assets/mango.svg" width="28" height="28" alt="mango logo"> mango setup showcase
 
 Live gallery: https://mangowm.github.io/showcase
 
@@ -21,7 +21,7 @@ Live gallery: https://mangowm.github.io/showcase
 
 3. Open a pull request.
 
-## Requirements
+## Notes
 
-* Include `tags`, even if it is `[]`.
+* Every entry needs a `tags` field. Use `tags: []` if you have no tags.
 * Do **not** add `added`. The workflow adds it after merge.
